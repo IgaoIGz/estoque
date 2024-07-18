@@ -1,0 +1,70 @@
+create database mercado
+default character set utf8
+default collate utf8_general_ci;
+
+use mercado;
+
+create table estoquemercado(
+cod_produto int primary key auto_increment,
+nome_produto varchar(100) not null,
+precocompra numeric(9,2) not null,
+precovenda decimal(9,2) not null,
+quantidadeproduto int not null,
+datacompra date
+);
+
+create table login(
+id int primary key auto_increment,
+usuario varchar(100) not null,
+senha varchar(100) not null
+);
+
+insert into login values
+(1, '1234', '1234'),
+(2, 'admin', 'admin');
+
+select * from estoquemercado;
+
+select * from login;
+
+create table vendamercado(
+cod_venda int primary key auto_increment,
+datavenda date,
+qtd_venda int,
+venda_estoque int,
+foreign key(venda_estoque) references estoquemercado(cod_produto)
+);
+
+/*TRIGGER DE VENDA*/
+delimiter $
+create TRIGGER tgr_novavenda after insert on vendamercado
+for each row
+  begin
+    update estoquemercado set quantidadeproduto = quantidadeproduto - new.qtd_venda
+    where cod_produto = new.venda_estoque;
+  end $
+delimiter ;
+
+select * from estoquemercado;
+
+insert into vendamercado (datavenda, qtd_venda, venda_estoque) values ('20230417', 4, 3);
+
+select * from vendamercado;
+
+/*TRIGGER DE DELETAR VENDA*/
+delimiter $
+create TRIGGER tgr_desfazervenda after delete on vendamercado
+for each row
+  begin
+    update estoquemercado set quantidadeproduto = quantidadeproduto + old.qtd_venda
+    where cod_produto = old.venda_estoque;
+  end $
+delimiter ;
+
+/*drop trigger tgr_novavenda; apagando um trigger*/
+
+delete from vendamercado where cod_venda= 2;
+
+insert into login values
+(3, 'paulo', 'paulo'),
+(4, 'corinthians', 'corinthians');
